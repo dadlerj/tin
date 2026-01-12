@@ -112,21 +112,21 @@ func TestRepository_BranchOperations(t *testing.T) {
 		t.Errorf("expected 0 branches initially, got %d", len(branches))
 	}
 
-	// Create new branch
-	if err := repo.WriteBranch("feature", "commit-123"); err != nil {
+	// Create new branch (with slash to test nested directory creation)
+	if err := repo.WriteBranch("feature/test", "commit-123"); err != nil {
 		t.Fatalf("WriteBranch failed: %v", err)
 	}
 
 	// Verify branch exists
-	if !repo.BranchExists("feature") {
-		t.Error("expected 'feature' branch to exist")
+	if !repo.BranchExists("feature/test") {
+		t.Error("expected 'feature/test' branch to exist")
 	}
 	if repo.BranchExists("nonexistent") {
 		t.Error("expected 'nonexistent' branch to not exist")
 	}
 
 	// Read branch
-	commitID, err := repo.ReadBranch("feature")
+	commitID, err := repo.ReadBranch("feature/test")
 	if err != nil {
 		t.Fatalf("ReadBranch failed: %v", err)
 	}
@@ -152,17 +152,17 @@ func TestRepository_DeleteBranch(t *testing.T) {
 		t.Fatalf("Init failed: %v", err)
 	}
 
-	// Create branch
-	repo.WriteBranch("feature", "commit-123")
+	// Create branch (with slash to test nested directory creation)
+	repo.WriteBranch("feature/test", "commit-123")
 
 	// Delete it
-	if err := repo.DeleteBranch("feature"); err != nil {
+	if err := repo.DeleteBranch("feature/test"); err != nil {
 		t.Fatalf("DeleteBranch failed: %v", err)
 	}
 
 	// Verify deleted
-	if repo.BranchExists("feature") {
-		t.Error("expected 'feature' branch to be deleted")
+	if repo.BranchExists("feature/test") {
+		t.Error("expected 'feature/test' branch to be deleted")
 	}
 }
 

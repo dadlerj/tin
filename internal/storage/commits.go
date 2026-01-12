@@ -108,25 +108,34 @@ func (r *Repository) ReadBranch(name string) (string, error) {
 // WriteBranch writes a branch reference
 func (r *Repository) WriteBranch(name string, commitID string) error {
 	path := filepath.Join(r.TinPath, RefsDir, HeadsDir, name)
+	// Create parent directories if they don't exist (for branches like "feature/foo")
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return err
+	}
 	return os.WriteFile(path, []byte(commitID), 0644)
 }
 
 // ListBranches returns all branch names
 func (r *Repository) ListBranches() ([]string, error) {
 	headsPath := filepath.Join(r.TinPath, RefsDir, HeadsDir)
-	entries, err := os.ReadDir(headsPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return []string{}, nil
-		}
-		return nil, err
+	if _, err := os.Stat(headsPath); os.IsNotExist(err) {
+		return []string{}, nil
 	}
 
 	var branches []string
-	for _, entry := range entries {
-		if !entry.IsDir() {
-			branches = append(branches, entry.Name())
+	err := filepath.WalkDir(headsPath, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
 		}
+		if !d.IsDir() {
+			// Get branch name relative to heads directory
+			relPath, _ := filepath.Rel(headsPath, path)
+			branches = append(branches, relPath)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	sort.Strings(branches)
